@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全球每日要闻看板</title>
+<style>
+:root{--bg:#FAF9F5;--card:#fff;--line:#E8E6DE;--ink:#1F1E1D;--sub:#5C5852;--muted:#8B8578;--accent:#C15F3C;--panel:#F5F2EA}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.6}
+.serif{font-family:Georgia,"Times New Roman","Songti SC",STSong,SimSun,serif}
+.wrap{max-width:1120px;margin:0 auto;padding:16px 14px 40px}
+header{border-bottom:1px solid var(--line);padding-bottom:14px}
+h1{font-size:22px;letter-spacing:-.02em}
+.cats{margin-top:4px;font-size:12px;color:var(--muted)}
+.meta{margin-top:8px;font-size:11px;color:var(--muted);font-family:ui-monospace,Menlo,monospace}
+.meta b{color:var(--accent)}
+.summary{margin-top:16px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px}
+.summary h2{font-size:16px}
+.summary p,.panel p{font-size:13px;color:#3A3835;margin-top:10px}
+.chip{display:inline-block;border-radius:4px;padding:0 5px;font-size:11px;font-weight:600;margin-right:6px;vertical-align:2px}
+.fact{background:#E8F0E4;color:#3D6B35;border:1px solid #B8CBAE}
+.infer{background:#F6EFDD;color:#8A6116;border:1px solid #E0CFA3}
+.sec{margin-top:14px;background:rgba(255,255,255,.6);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.sec>button{width:100%;display:flex;align-items:center;gap:8px;padding:13px 14px;background:none;border:0;cursor:pointer;text-align:left;font-size:15px;font-weight:600;color:var(--ink)}
+.sec .cnt{background:var(--panel);border-radius:999px;padding:1px 8px;font-size:11px;color:var(--muted);font-weight:400}
+.sec .arr{margin-left:auto;color:var(--muted);transition:transform .2s}
+.sec.open .arr{transform:rotate(90deg)}
+.body{display:none;border-top:1px solid var(--line);background:var(--bg);padding:12px}
+.sec.open .body{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:900px){.sec.open .body{grid-template-columns:1fr 1fr}.panel{align-self:start;position:sticky;top:12px}}
+.news{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.card h3{font-size:14px;line-height:1.45;display:inline}
+.verdict{float:right;border-radius:999px;border:1px solid;padding:0 8px;font-size:10px;margin-left:8px}
+.v-ok{background:#E8F0E4;color:#3D6B35;border-color:#B8CBAE}
+.v-warn{background:#F6EFDD;color:#8A6116;border-color:#E0CFA3}
+.v-info{background:#E4EEF5;color:#33617D;border-color:#BDD3E0}
+.card .sum{margin-top:6px;font-size:12.5px;color:var(--sub)}
+.ana{margin-top:8px;border-left:2px solid rgba(193,95,60,.5);background:#FAF6F0;border-radius:4px;padding:6px 8px;font-size:12px;color:#6B655B}
+.ana.inf{border-color:#D9A93B;background:#FBF7EA}
+.ana .tag{display:inline-block;border-radius:3px;padding:0 4px;font-size:10px;font-weight:600;margin-right:4px;background:#EAD9CC;color:#9A4A2B}
+.ana.inf .tag{background:#F0E3BC;color:#8A6116}
+.src{margin-top:8px;font-size:11.5px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.src a{color:#33617D;text-decoration:none;font-weight:500}
+.src a:active{color:var(--accent)}
+.src .type{background:var(--panel);border-radius:4px;padding:0 5px;font-size:10px;color:var(--muted)}
+.src .time{margin-left:auto;color:var(--muted);font-family:ui-monospace,monospace}
+.xsrc{margin-top:6px;border-top:1px solid #F0EDE4;padding-top:6px;font-size:11px;color:var(--muted)}
+.xsrc a{color:var(--muted);margin-right:10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.panel .pt{font-size:11px;font-weight:600;letter-spacing:.15em;color:var(--accent)}
+.panel .legend{margin-top:10px;border-top:1px solid var(--line);padding-top:6px;font-size:10.5px;color:var(--muted)}
+.mk{margin-top:18px}
+.mk h2,.secs>h2{font-size:12px;font-weight:600;letter-spacing:.15em;color:var(--muted)}
+.mk .g{font-size:11px;color:var(--muted);margin:10px 0 5px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+@media(min-width:640px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:900px){.grid{grid-template-columns:repeat(5,1fr)}}
+.mcard{display:block;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;text-decoration:none;color:var(--ink)}
+.mcard .mg{font-size:10px;color:var(--muted)}
+.mcard .mn{font-size:12.5px;font-weight:500;margin-top:2px}
+.mcard .mv{font-family:ui-monospace,monospace;font-size:13px;margin-top:2px;display:flex;justify-content:space-between}
+.up{color:#B03A2E;font-weight:600}.down{color:#2E7D4F;font-weight:600}
+footer{margin-top:20px;border-top:1px solid var(--line);padding-top:10px;font-size:11px;color:var(--muted)}
+.loading{padding:60px 0;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1 class="serif">全球每日要闻看板</h1>
+<div class="cats">宏观货币 · 市场行情 · 政策民生 · 国际政治 · 军事地缘 · 产业科技 · 能源航运</div>
+<div class="meta" id="meta"></div>
+</header>
+<div id="app"><div class="loading">加载中…</div></div>
+<footer>信源细分：官方发布 / 政府机构 / 国际机构 / 国际通讯社 / 国际媒体 / 当地媒体 / 国内媒体 / 个人与开源信源。仅供信息参考，不构成投资建议。</footer>
+</div>
+<script>
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const para=p=>`<p><span class="chip ${p.kind==='inference'?'infer':'fact'}">${p.kind==='inference'?'推断':'事实'}</span>${esc(p.text).replace(/^【推断】/,'')}</p>`;
+const vc=v=>v==='已证实'||v.includes('证实')?'v-ok':(v==='观点'?'v-info':'v-warn');
+function card(it){
+  const inf=it.analysis&&it.analysis.startsWith('【推断】');
+  return `<div class="card">
+    <span class="verdict ${vc(it.verdict)}">${esc(it.verdict)}</span>
+    <h3 class="serif">${esc(it.title)}</h3>
+    <div class="sum">${esc(it.summary)}</div>
+    ${it.analysis?`<div class="ana${inf?' inf':''}"><span class="tag">${inf?'推断':'分析'}</span>${esc(it.analysis).replace(/^【推断】/,'')}</div>`:''}
+    <div class="src"><a href="${esc(it.sourceUrl)}" target="_blank" rel="noreferrer">${esc(it.source)} ↗</a>
+    ${it.sourceType?`<span class="type">${esc(it.sourceType)}</span>`:''}<span class="time">${esc(it.time)}</span></div>
+    ${it.extraSources&&it.extraSources.length?`<div class="xsrc">交叉信源：${it.extraSources.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noreferrer">${esc(s.label)} ↗</a>`).join('')}</div>`:''}
+  </div>`;
+}
+fetch('./data/briefing.json?t='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(d=>{
+  document.getElementById('meta').innerHTML=`数据日期 <b>${esc(d.meta.date)}</b> · 生成于 ${esc(d.meta.generatedAt)}（北京时间） · 下次更新 ${esc(d.meta.nextUpdate)}`;
+  let h=`<div class="summary"><h2 class="serif">${esc(d.dailySummary.title)}</h2>${d.dailySummary.paragraphs.map(para).join('')}</div>`;
+  const groups=[...new Set(d.markets.map(m=>m.group))];
+  h+=`<div class="mk"><h2>市场行情</h2>`+groups.map(g=>`<div class="g">${esc(g)}</div><div class="grid">`+
+    d.markets.filter(m=>m.group===g).map(m=>`<a class="mcard" href="${esc(m.sourceUrl)}" target="_blank" rel="noreferrer"><div class="mg">${esc(m.group)} · ${esc(m.asOf)}</div><div class="mn">${esc(m.name)}</div><div class="mv"><span>${esc(m.value)}</span><span class="${m.up?'up':'down'}">${esc(m.change)}</span></div></a>`).join('')+`</div>`).join('')+`</div>`;
+  h+=`<div class="secs" style="margin-top:18px"><h2>要闻板块（点击展开 · 左侧消息 / 右侧板块总结）</h2></div>`;
+  h+=d.sections.map((s,i)=>`<div class="sec${i===0?' open':''}" id="sec-${esc(s.id)}">
+    <button onclick="document.getElementById('sec-${esc(s.id)}').classList.toggle('open')">
+    <span>${esc(s.icon)}</span><span class="serif">${esc(s.title)}</span><span class="cnt">${s.items.length} 条</span><span class="arr">▸</span></button>
+    <div class="body"><div class="news">${s.items.map(card).join('')}</div>
+    <div class="panel"><div class="pt">板块总结</div>${s.analysis.map(para).join('')}<div class="legend">绿色=可查证事实；黄色=逻辑推断（非事实，需后续验证）</div></div></div></div>`).join('');
+  document.getElementById('app').innerHTML=h;
+}).catch(e=>{document.getElementById('app').innerHTML=`<div class="loading">数据加载失败：${esc(e.message)}</div>`});
+</script>
+</body>
+</html>
